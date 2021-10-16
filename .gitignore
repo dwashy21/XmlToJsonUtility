@@ -1,3 +1,9 @@
+# IntelliJ files
 .idea/*
 *.iml
+
+# Build directory
 target/*
+
+# Output files
+output.*

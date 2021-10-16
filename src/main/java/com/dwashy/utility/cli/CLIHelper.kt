@@ -28,7 +28,7 @@ class CLIHelper {
      * Prompts the user to provide a new XML source, or accept the default
      * @return [String] response from the user, potentially null
      */
-    fun promptUser(): String? {
+    fun promptUserForXmlSource(): String? {
         println("\nDefault XML source: $xmlSource")
         print("Provide new XML source if desired, press ENTER to accept default, or type QUIT to exit: ")
         return readLine()
@@ -87,32 +87,52 @@ class CLIHelper {
     }
 
     /**
-     * Allows user to choose between printing JSON or XML result to console, or write to file
+     * Prompts the user to either write to console or a file
+     * @param jsonOrXml [DataType] the type of result to write or print
+     * @return [String?] representing the user's selection, potentially null
      */
-    fun printToConsoleOrWriteFile(jsonOrXml: DataType, result: String) {
+    fun promptUserWriteToConsoleOrFile(jsonOrXml: DataType): String? {
         println("Shall $jsonOrXml be printed to console, or written to file?")
         print("Press ENTER to write to file, or enter anything else to write to console:")
-        val consoleOrFile = readLine()
+        return readLine()
+    }
 
+
+    /**
+     * Allows user to choose between printing JSON or XML result to console, or write to file
+     * @param userChoice [String?] the user's selection of write to console or file
+     * @param jsonOrXml [DataType] the type of result to write or print
+     * @param result [String] the result to write or print
+     */
+    fun writeToConsoleFile(userChoice: String?, jsonOrXml: DataType, result: String) {
         var newResult: String? = null
         if(jsonOrXml == DataType.XML) {
-            val xslt = StreamSource(File("src/main/resources/xslt/format.xslt"))
-            val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(ByteArrayInputStream(result.toByteArray()))
-            val transformer = TransformerFactory.newInstance().newTransformer(xslt)
-            val outputStream = ByteArrayOutputStream()
-            transformer.setOutputProperty(OutputKeys.STANDALONE, "no")
-            transformer.transform(DOMSource(doc), StreamResult(outputStream))
-            newResult = String(outputStream.toByteArray(), Charsets.UTF_8)
+            newResult = prettyPrintXml(result)
         }
 
-        if(consoleOrFile != null && consoleOrFile.isNotBlank()) {
+        if(userChoice != null && userChoice.isNotBlank()) {
             println(if(jsonOrXml == DataType.XML) newResult else result)
         } else {
             val writer = BufferedWriter(FileWriter("output.${jsonOrXml.toString().lowercase()}"))
             writer.append(if(jsonOrXml == DataType.XML) newResult else result)
-                    .close()
+                  .close()
             println("Successfully written to file output.${jsonOrXml.toString().lowercase()}")
         }
         println()
+    }
+
+    /**
+     * Pretty prints the XML provided with correct indentation, making easier to read
+     * @param xmlBlob [String] the XML to pretty print
+     * @return [String] the XML that has been pretty printed
+     */
+    private fun prettyPrintXml(xmlBlob: String): String {
+        val xslt = StreamSource(File("src/main/resources/xslt/format.xslt"))
+        val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(ByteArrayInputStream(xmlBlob.toByteArray()))
+        val transformer = TransformerFactory.newInstance().newTransformer(xslt)
+        val outputStream = ByteArrayOutputStream()
+        transformer.setOutputProperty(OutputKeys.STANDALONE, "no")
+        transformer.transform(DOMSource(doc), StreamResult(outputStream))
+        return String(outputStream.toByteArray(), Charsets.UTF_8)
     }
 }

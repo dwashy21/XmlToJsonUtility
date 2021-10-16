@@ -40,17 +40,16 @@ open class Application : CommandLineRunner {
         val cliHelper = CLIHelper()
         lateinit var xml: Mono<String>
         var validXml = false
-        var quit = false
 
-        while(!validXml || quit) {
-            val userInput = cliHelper.promptUser()
+        while(!validXml) {
+            val userInput = cliHelper.promptUserForXmlSource()
             val xmlSource = cliHelper.determineXmlSource(userInput)
             xml = webClient.get()
                            .uri(URI(xmlSource))
                            .retrieve()
                            .bodyToMono(String::class.java)
 
-            validXml = cliHelper.isValidXml(xml!!).block()
+            validXml = cliHelper.isValidXml(xml).block()!!
             if(!validXml) {
                 println("URI source has provided bad XML that does not adhere to the schema.")
             }
@@ -58,13 +57,15 @@ open class Application : CommandLineRunner {
 
         val json = xml.map{xmlBlob -> XML.toJSONObject(xmlBlob)}
                       .map{jsonDump -> jsonDump.toString(4)}
-                      .block()
+                      .block()!!
 
         println("\nXML converted to JSON.")
-        cliHelper.printToConsoleOrWriteFile(CLIHelper.DataType.JSON, json)
+        var userChoice = cliHelper.promptUserWriteToConsoleOrFile(CLIHelper.DataType.JSON)
+        cliHelper.writeToConsoleFile(userChoice, CLIHelper.DataType.JSON, json)
 
         val newXml = XML.toString(JSONObject(json))
         println("JSON converted back to XML.")
-        cliHelper.printToConsoleOrWriteFile(CLIHelper.DataType.XML, newXml)
+        userChoice = cliHelper.promptUserWriteToConsoleOrFile(CLIHelper.DataType.XML)
+        cliHelper.writeToConsoleFile(userChoice, CLIHelper.DataType.XML, newXml)
     }
 }
