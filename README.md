@@ -1,6 +1,6 @@
 # XmlToJsonUtility
 Simple CLI app written in Kotlin (1.5.31) on Java 11, using Spring Boot. Queries a URI ([default](http://www.bindows.net/documentation/download/ab.xml)) 
-as an XML source. Attempts to  validate that XML against the local schema, and converts that schema to JSON and back. 
+as an XML source. Attempts to  validate that XML against the [local schema](https://github.com/dwashy21/XmlToJsonUtility/blob/develop/src/main/resources/schema/AddressBook.xsd), and converts the XML to JSON and back. 
 Optionally will accept a different URI as an XML source.
 
 ### XML and JSON Conversion
@@ -8,7 +8,7 @@ XML to JSON and JSON to XML conversion support is provided by the *[org.json JSO
 During execution, user will have the option to write output to a file(s), or directly to the console.
 
 ### Dependency Management
-Maven is used for dependency management for this project.
+Maven is used for dependency management in this project.
 
 ### Testing
 Testing is performed using JUnit5 and the *[junit5-system-exit](https://github.com/tginsberg/junit5-system-exit)* library to validate calls to System.exit()
